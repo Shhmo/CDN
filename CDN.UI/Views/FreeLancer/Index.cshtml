@@ -1,0 +1,314 @@
+﻿@{
+    ViewData["Title"] = "Complete Developer Network";
+}
+@using CDN.Common;
+
+<div class="text-center">
+    <h3>Free Lancers Management</h3><br>
+    <form>
+        <div class="form-group">
+            <label for="txtUsername">Username</label>
+            <input type="text" class="form-control" id="txtUsername">
+        </div>
+        <div class="form-group">
+            <label for="txtEMail">Email</label>
+            <input type="text" class="form-control" id="txtEmail" />
+        </div>
+        <div class="form-group">
+            <label for="txtHandphone">H/P</label>
+            <input type="number" class="form-control" id="txtHandphone">
+        </div>
+        <div class="form-group">
+            <label for="txtSkillsets">Skillsets</label>
+            <input type="text" class="form-control" id="txtSkillsets">
+        </div>
+        <div class="form-group">
+            <label for="txtHobby">Hobby</label>
+            <input type="text" class="form-control" id="txtHobby">
+        </div>
+        <br>
+        <input id="btnAdd" type="button" class="btn btn-primary" value="Add" />
+    </form>
+    <br>
+    <br>
+
+    <div><b>Existing Free Lancers</b><br /></div>
+    <table id="tableFreeLancer" class="table table-bordered table-responsive table-hover">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username </th>
+                <th>Email</th>
+                <th>H/P</th>
+                <th>Skillsets</th>
+                <th>Hobby</th>
+                <th>Update</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+    </table>
+    </div>
+
+    <!-- The Modal -->
+    <div id="modalUpdate" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Update</h4>
+                <span type="button" class="close" data-dismiss="modal">
+                    &times;
+                </span>
+            </div>
+            <div class="modal-body">
+            <form>
+                <div class="form-group">
+                    <label for="txtUpdateID">txtUpdateID</label>
+                    <input type="text" class="form-control" id="txtUpdateID" disabled>
+                </div>
+                <div class="form-group">
+                    <label for="txtUpdateUsername">Username</label>
+                    <input type="text" class="form-control" id="txtUpdateUsername">
+                </div>
+                <div class="form-group">
+                    <label for="txtUpdateEmail">Email</label>
+                    <input type="text" class="form-control" id="txtUpdateEmail">
+                </div>
+                <div class="form-group">
+                    <label for="txtUpdateHandphone">H/P</label>
+                    <input type="number" class="form-control" id="txtUpdateHandphone">
+                </div>
+                <div class="form-group">
+                    <label for="txtUpdateSkillsets">Skillsets</label>
+                    <input type="text" class="form-control" id="txtUpdateSkillsets">
+                </div>
+                <div class="form-group">
+                    <label for="txtUpdateHobby">Hobby</label>
+                    <input type="text" class="form-control" id="txtUpdateHobby">
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <input id="btnSave" type="button" class="btn btn-primary" value="Save" />
+            </div>
+        </div>
+    </div>
+
+<script>  
+
+    // Modal
+    var modal = document.getElementById("modalUpdate");
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    function getTable() {
+        $.ajax({
+            url: '/FreeLancer/Get',
+            method: 'get',
+            accepts: 'application/json',
+            dataType: 'json',
+            success: (data) => {
+                // Clear table
+                $('#tableFreeLancer').children('tbody').remove();
+
+                // Populate table
+                let tbody = $('<tbody>');
+                for (let i = 0; i < data.length; i++) {
+                    let tdID = $('<td>').data('id', data[i].ID).html(data[i].ID);
+                    let tdUsername = $('<td>').html(data[i].Username);
+                    let tdMail = $('<td>').html(data[i].Mail);
+                    let tdHP = $('<td>').html(data[i].HP);
+                    let tdSkills = $('<td>').html(data[i].Skills);
+                    let tdHobby = $('<td>').html(data[i].Hobby);
+                    let tdBtnUpdate = $('<td>').html($('<input>').addClass('btnUpdate').attr('type', 'button').attr('value', 'Update'));
+                    let tdBtnDelete = $('<td>').html($('<input>').addClass('btnDelete').attr('type', 'button').attr('value', 'Delete'));
+                    let tr = $('<tr>');
+                    tr.append(tdID);
+                    tr.append(tdUsername);
+                    tr.append(tdMail);
+                    tr.append(tdHP);
+                    tr.append(tdSkills);
+                    tr.append(tdHobby);
+                    tr.append(tdBtnUpdate);
+                    tr.append(tdBtnDelete);
+                    tbody.append(tr);
+                }
+                $('#tableFreeLancer').append(tbody);
+
+                // Update button click event handler
+                $('.btnUpdate').click((e) => {
+                    $.ajax({
+                        url: '/FreeLancer/GetDetails',
+                        method: 'get',
+                        accepts: 'application/json',
+                        dataType: 'json',
+                        data: {
+                            ID: $(e.target).parent().siblings().first().data("id")
+                        },
+                        success: (data) => {
+                            $("#txtUpdateID").val(data.ID);
+                            $("#txtUpdateUsername").val(data.Username);
+                            $("#txtUpdateEmail").val(data.Mail);
+                            $("#txtUpdateHandphone").val(data.HP);
+                            $("#txtUpdateSkillsets").val(data.Skills);
+                            $("#txtUpdateHobby").val(data.Hobby);
+                        },
+                        error: (xhr, status, error) => {
+                            alert(error);
+                        }
+                    });
+                    modal.style.display = "block";
+                });
+
+                // Update-Save button click event handler
+                $('#btnSave').click((e) => {
+                    $.ajax({
+                        url: '/FreeLancer/Update',
+                        method: 'put',
+                        accepts: 'application/json',
+                        dataType: 'json',
+                        data: {
+                            ID: $('#txtUpdateID').val(),
+                            Username: $('#txtUpdateUsername').val(),
+                            Mail: $('#txtUpdateEmail').val(),
+                            HP: $('#txtUpdateHandphone').val(),
+                            Skills: $('#txtUpdateSkillsets').val(),
+                            Hobby: $('#txtUpdateHobby').val(),
+                        },
+                        success: (data) => {
+                            if (data) {
+                                getTable(); 
+                                modal.style.display = "none";
+                            }
+                            else {
+                                alert('Error: freelancer could not be updated.')
+                            }
+                        },
+                        error: (xhr, status, error) => {
+                            alert(error);
+                        }
+                    });
+                });
+
+                // Delete button click event handler
+                $('.btnDelete').click((e) => {
+                    $.ajax({
+                        url: '/FreeLancer/Delete',
+                        method: 'delete',
+                        accepts: 'application/json',
+                        dataType: 'json',
+                        data: {
+                            ID: $(e.target).parent().siblings().first().data("id")
+                        },
+                        success: (data) => {
+                            if (data) { 
+                                getTable();
+                            }
+                            else {
+                                alert('Error: freelancer could not be removed.')
+                            }
+                        },
+                        error: (xhr, status, error) => {
+                            alert(error);
+                        }
+                    });
+                });
+            },
+            error: (xhr, status, error) => {
+                alert(error);
+            }
+        });
+    }
+
+    $(document).ready(() => {
+        getTable();
+        $('#btnAdd').click((e) => {
+            $.ajax({
+                url: '/FreeLancer/Create',
+                method: 'post',
+                accepts: 'application/json',
+                dataType: 'json',
+                data: {
+                    Username: $('#txtUsername').val(),
+                    Mail: $('#txtEmail').val(),
+                    HP: $('#txtHandphone').val(),
+                    Skills: $('#txtSkillsets').val(),
+                    Hobby: $('#txtHobby').val(),
+                },
+                success: (data) => {
+                    alert(`New freelancer (ID: ${data.ID}) has been added successfully.`);
+                    getTable();
+                },
+                error: (xhr, status, error) => {
+                    alert(error);
+                }
+            });
+        });
+    });
+
+</script>
+<style>
+    body {
+        font-family: Arial, Helvetica, sans-serif;
+    }
+
+    /* The Modal (background) */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    /* Modal Content */
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 40%;
+    }
+
+    /* The Close Button */
+    .close {
+        color: #aaaaaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+    }
+
+    .close:hover,
+    .close:focus {
+        color: #000;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Chrome, Safari, Edge, Opera */
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* Firefox */
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+</style>
